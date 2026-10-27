@@ -1,0 +1,3 @@
+# Outils de construction utilisés sans isolation (aucun téléchargement implicite).
+setuptools==80.9.0
+wheel==0.45.1

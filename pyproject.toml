@@ -1,19 +1,19 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "nexaura-linky-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP Linky de NexAura : consommation électrique Enedis, en lecture seule"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
-dependencies = ["mcp>=1.2,<3"]
+dependencies = ["mcp==2.3.0"]
 
 [project.optional-dependencies]
-http = ["mcp>=1.10", "PyJWT[crypto]>=2.8"]
-test = ["pytest>=8", "PyJWT[crypto]>=2.8"]
+http = ["mcp==2.3.0", "PyJWT[crypto]==2.15.1"]
+test = ["pytest==9.2.0", "PyJWT[crypto]==2.15.1"]
 
 [project.scripts]
 nexaura-linky-mcp = "nexaura_linky.server:main"
