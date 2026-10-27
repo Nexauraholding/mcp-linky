@@ -1,0 +1,54 @@
+# Fiche Catalogue au format natif d'Hermès (optional-mcps/<nom>/manifest.yaml, manifest_version 1).
+# NexAura, 27 oct. 2026.
+manifest_version: 1
+
+name: nexaura-linky
+description: >-
+  Read-only Linky (Enedis) electricity consumption: yesterday, a period,
+  30-minute load curve, daily peak power. Every call is logged.
+source: https://github.com/Nexauraholding/mcp-linky
+
+transport:
+  type: stdio
+  command: ${INSTALL_DIR}/.venv/bin/python
+  args: ["-m", "nexaura_linky"]
+  env:
+    LINKY_TOKEN: "${LINKY_TOKEN}"
+    LINKY_PRM: "${LINKY_PRM}"
+
+install:
+  type: git
+  url: https://github.com/Nexauraholding/mcp-linky
+  ref: v0.1.0
+  bootstrap:
+    - python3 -m venv .venv
+    - .venv/bin/pip install .
+
+auth:
+  type: api_key
+  env:
+    - name: LINKY_TOKEN
+      prompt: "Conso API token (https://conso.boris.sh, after consenting on your Enedis account)"
+      required: true
+      secret: true
+    - name: LINKY_PRM
+      prompt: "Meter number (PRM, 14 digits, on your bill or Enedis account)"
+      required: true
+      secret: true
+
+tools:
+  default_enabled: [conso_veille, conso_periode, courbe_charge, puissance_max]
+
+suggest:
+  keywords: [linky, enedis, consommation électrique, électricité]
+  hosts: [enedis.fr, conso.boris.sh]
+  examples:
+    - "Combien j'ai consommé hier ?"
+    - "Ma consommation de la semaine dernière, jour par jour"
+    - "Mon abonnement est-il trop grand ?"
+
+post_install: |
+  Lecture seule : aucun réglage du compteur, aucun changement de contrat.
+  Chaque appel est noté dans ~/.nexaura/journal/linky.jsonl (jamais le jeton ni le PRM).
+  Les données d'un jour arrivent le lendemain vers 8 h. Démarre une nouvelle session
+  ou lance /reload-mcp.
