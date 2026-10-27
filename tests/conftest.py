@@ -1,4 +1,8 @@
 import json
+import os
+import socket
+
+import pytest
 import sys
 from pathlib import Path
 
@@ -34,3 +38,26 @@ class FauxReseau:
     def __call__(self, url, headers):
         self.appels.append((url, dict(headers)))
         return self.code, json.dumps(self.corps)
+
+
+@pytest.fixture(autouse=True)
+def sans_reseau(request, monkeypatch):
+    """MCP_TEST_SANS_RESEAU=1 : aucun socket, même pour les faux serveurs locaux."""
+    if os.environ.get("MCP_TEST_SANS_RESEAU") != "1":
+        return
+
+    def interdit(*args, **kwargs):
+        raise AssertionError("Réseau interdit pendant cette exécution")
+
+    monkeypatch.setattr(socket, "create_connection", interdit)
+    monkeypatch.setattr(socket.socket, "connect", interdit)
+    monkeypatch.setattr(socket.socket, "connect_ex", interdit)
+    monkeypatch.setattr(socket.socket, "bind", interdit)
+
+
+def pytest_collection_modifyitems(items):
+    if os.environ.get("MCP_TEST_SANS_RESEAU") == "1":
+        for item in items:
+            if {"fausse_api", "faux_as", "mcp_http"}.intersection(item.fixturenames):
+                item.add_marker(pytest.mark.skip(
+                    reason="MCP_TEST_SANS_RESEAU=1 : faux serveur HTTP local écarté"))

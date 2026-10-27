@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nexaura-linky-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "MCP Linky de NexAura : consommation électrique Enedis, en lecture seule"
 readme = "README.md"
 license = { text = "MIT" }

@@ -8,6 +8,8 @@ import time
 from datetime import date, timedelta
 from typing import Any, Callable
 
+from mcp.types import ToolAnnotations
+
 from . import autorisation, journal, outils
 from .client import ClientLinky, LinkyError
 
@@ -55,6 +57,11 @@ def creer_serveur(client: ClientLinky | None = None, chemin_journal=None,
             "auth": autorisation.reglages_mcp(cfg_auth)}
     serveur = _Serveur("linky", instructions=INSTRUCTIONS, **options)
 
+    annotations = ToolAnnotations(
+        readOnlyHint=True, destructiveHint=False,
+        idempotentHint=True, openWorldHint=True,
+    )
+
     def lecture(nom: str, fn: Callable[..., dict]):
         """Enveloppe : journalise chaque appel (sans secret) et traduit les erreurs."""
         @functools.wraps(fn)
@@ -84,20 +91,20 @@ def creer_serveur(client: ClientLinky | None = None, chemin_journal=None,
             return res
         return enveloppe
 
-    @serveur.tool(name="conso_veille")
+    @serveur.tool(name="conso_veille", annotations=annotations)
     def conso_veille() -> dict:
         """Dit combien d'électricité le foyer a consommé hier, en kWh (kilowattheures).
         À utiliser pour « combien j'ai consommé hier ? ». Lecture seule."""
         return lecture("conso_veille", outils.conso_veille)()
 
-    @serveur.tool(name="conso_periode")
+    @serveur.tool(name="conso_periode", annotations=annotations)
     def conso_periode(debut: str, fin: str) -> dict:
         """Donne la consommation d'électricité jour par jour, en kWh, entre deux dates incluses,
         avec le total et la moyenne. Dates au format AAAA-MM-JJ (exemple 2026-05-01).
         Jusqu'à 366 jours, jusqu'à hier au plus tard. Lecture seule."""
         return lecture("conso_periode", outils.conso_periode)(debut=debut, fin=fin)
 
-    @serveur.tool(name="courbe_charge")
+    @serveur.tool(name="courbe_charge", annotations=annotations)
     def courbe_charge(debut: str | None = None, fin: str | None = None) -> dict:
         """Donne la consommation toutes les 30 minutes (puissance moyenne en watts et énergie en kWh).
         Sans dates : hier. 7 jours au plus. Dates au format AAAA-MM-JJ, incluses.
@@ -105,7 +112,7 @@ def creer_serveur(client: ClientLinky | None = None, chemin_journal=None,
         Lecture seule."""
         return lecture("courbe_charge", outils.courbe_charge)(debut=debut, fin=fin)
 
-    @serveur.tool(name="puissance_max")
+    @serveur.tool(name="puissance_max", annotations=annotations)
     def puissance_max(debut: str | None = None, fin: str | None = None) -> dict:
         """Donne la puissance maximale atteinte chaque jour (en VA) et le jour le plus fort de la
         période. Utile pour savoir si l'abonnement est trop petit ou trop grand. Sans dates : hier.

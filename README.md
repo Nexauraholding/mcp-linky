@@ -7,6 +7,8 @@ Fabriqué par NexAura, publié sous licence MIT.
 
 ## Ce qu'il fait
 
+Chaque outil se déclare en lecture seule (readOnlyHint).
+
 Quatre outils, que l'agent choisit tout seul selon la question :
 
 | Outil | Il répond à… |
